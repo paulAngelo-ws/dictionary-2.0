@@ -37,3 +37,4 @@ channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
 If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).# dictionary
 # dictionary-2.0
 # dictionary-2.0
+# dictionary-2.0
