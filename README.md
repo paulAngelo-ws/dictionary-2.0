@@ -38,3 +38,4 @@ If you face any issues, please report them on [YouTrack](https://youtrack.jetbra
 # dictionary-2.0
 # dictionary-2.0
 # dictionary-2.0
+# dictionary-2.0
