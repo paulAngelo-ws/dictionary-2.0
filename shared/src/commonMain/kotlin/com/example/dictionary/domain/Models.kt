@@ -5,10 +5,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DictionaryEntry(
     val word: String,
-    val source: String, // "Merriam-Webster" or "Urban Dictionary"
+    val source: String,
     val partOfSpeech: String = "",
     val definition: String,
     val example: String = ""
+)
+
+data class HistoryItem(
+    val word: String,
+    val snippet: String,
+    val formalEntries: List<DictionaryEntry>,
+    val urbanEntries: List<DictionaryEntry>,
+    val isFavorite: Boolean = false
 )
 
 sealed class UiState {

@@ -61,7 +61,7 @@ class DictionaryRepositoryImpl : DictionaryRepository {
             emptyList()
         }
 
-        // 2. Fetch from Merriam-Webster (Replace MW_API_KEY with your key)
+        // 2. Fetch from Merriam-Webster (Insert your key below)
         val mwApiKey = "2233bca2-414f-4402-b28c-69f7aef9d02e"
         val formalEntries = try {
             val mwUrl = "https://dictionaryapi.com/api/v3/references/collegiate/json/$sanitized?key=$mwApiKey"
