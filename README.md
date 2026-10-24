@@ -1,41 +1,71 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
+# // KMP Dictionary
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
-
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-    - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-    - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-      For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-      the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-      Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-      folder is the appropriate location.
-
-### Running the apps
-
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and
-options:
-
-- Android app: `./gradlew :androidApp:assembleDebug`
-- Desktop app:
-    - Hot reload: `./gradlew :desktopApp:hotRun --auto`
-    - Standard run: `./gradlew :desktopApp:run`
-- Web app:
-    - Wasm target (faster, modern browsers): `./gradlew :webApp:wasmJsBrowserDevelopmentRun`
-    - JS target (slower, supports older browsers): `./gradlew :webApp:jsBrowserDevelopmentRun`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+A high-performance Kotlin Multiplatform (KMP) desktop and mobile application built with Compose Multiplatform. **// KMP Dictionary** offers a dual-source lookup engine that retrieves structured formal definitions from Merriam-Webster alongside real-time internet slang from Urban Dictionary.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://kotlinlang.org/compose-multiplatform/),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+## Features
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack
-channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).# dictionary
-# dictionary-2.0
-# dictionary-2.0
-# dictionary-2.0
-# dictionary-2.0
+* **Dual-Source Search Engine**: Concurrently queries Merriam-Webster (formal definitions) and Urban Dictionary (slang/vernacular) in a single request.
+* **Viewer Discretion Slang Matrix**: Urban Dictionary definitions are shielded behind an expandable warning banner (`animateContentSize`) to prevent explicit or unfiltered terms from displaying automatically.
+* **Search Ledger & Snippets**: Tracks search history locally, storing word snippets and cached definition data.
+* **Instant Offline Reloading**: Selecting any term from the history ledger reloads its full definition instantly from local memory without triggering network calls or consuming API quotas.
+* **Pin & Favorites System**: Users can star items (`★`). Favorited entries automatically pin to the top of the history ledger.
+* **Sharp Editorial UI**: Built with a high-contrast, sharp-edged monochrome design system tailored for desktop and mobile layouts.
+
+---
+
+## Project Architecture
+
+The application follows Clean Architecture principles decoupled inside `shared/src/commonMain/`:
+
+```
+shared/src/commonMain/kotlin/com/example/dictionary/
+├── data/               # Network clients, Ktor configuration, and repository implementations
+│   └── DictionaryRepository.kt
+├── domain/             # Core data classes, models, and UiState sealed classes
+│   └── Models.kt
+├── presentation/       # StateFlow management, offline caching, and business logic
+│   └── DictionaryViewModel.kt
+├── ui/                 # Modular Compose Multiplatform UI screens
+│   ├── InputScreen.kt
+│   ├── ResultScreen.kt
+│   └── HistoryScreen.kt
+└── App.kt              # App entry point, Material 3 theme, and tab navigation
+
+```
+
+---
+
+## Tech Stack & Dependencies
+
+* **Language**: Kotlin 2.x
+* **UI Framework**: Compose Multiplatform (Android / Desktop JVM)
+* **Networking**: Ktor Client (`ktor-client-core`, `ktor-client-content-negotiation`)
+* **Serialization**: `kotlinx.serialization` (JSON parsing)
+* **Asynchronous Flow**: Kotlin Coroutines & `StateFlow`
+* **Design System**: Material 3 with customized sharp geometric components
+
+---
+
+## How to Run
+
+### Prerequisites
+
+* JDK 17 or higher
+* Android Studio (Ladybug or newer) or IntelliJ IDEA Ultimate with KMP plugins enabled
+
+### Desktop (JVM)
+
+Run the following command in your terminal:
+
+```bash
+./gradlew desktopRun -DmainClass=MainKt
+
+```
+
+### Android
+
+1. Open the project in Android Studio.
+2. Select the `androidApp` configuration.
+3. Launch on a connected Android device or emulator.

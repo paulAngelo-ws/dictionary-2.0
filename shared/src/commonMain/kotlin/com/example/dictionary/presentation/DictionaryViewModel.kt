@@ -19,7 +19,6 @@ class DictionaryViewModel(
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
-    // History list sorted with favorites on top
     private val _searchHistory = MutableStateFlow<List<HistoryItem>>(emptyList())
     val searchHistory: StateFlow<List<HistoryItem>> = _searchHistory
 
@@ -27,7 +26,6 @@ class DictionaryViewModel(
         if (word.isBlank()) return
         val sanitized = word.trim().lowercase()
 
-        // Check if already in history to load cached results instantly without API calls
         if (bypassApiIfCached) {
             val existing = _searchHistory.value.find { it.word.lowercase() == sanitized }
             if (existing != null) {
@@ -51,11 +49,9 @@ class DictionaryViewModel(
                     val index = updatedList.indexOfFirst { it.word.lowercase() == sanitized }
 
                     if (index >= 0) {
-                        // Update existing entry data while preserving favorite status
                         val old = updatedList[index]
                         updatedList[index] = old.copy(formalEntries = formal, urbanEntries = urban, snippet = snippet)
                     } else {
-                        // Add new entry
                         updatedList.add(0, HistoryItem(word = sanitized, snippet = snippet, formalEntries = formal, urbanEntries = urban))
                     }
 
@@ -79,7 +75,6 @@ class DictionaryViewModel(
     }
 
     private fun sortHistory(list: List<HistoryItem>): List<HistoryItem> {
-        // Favorites first, then ordinary history
         return list.sortedWith(compareByDescending<HistoryItem> { it.isFavorite })
     }
 }

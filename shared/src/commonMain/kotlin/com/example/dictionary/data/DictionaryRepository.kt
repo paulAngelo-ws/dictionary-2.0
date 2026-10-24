@@ -43,11 +43,11 @@ class DictionaryRepositoryImpl : DictionaryRepository {
     }
 
     override suspend fun fetchDefinitions(word: String): Pair<List<DictionaryEntry>, List<DictionaryEntry>> {
-        val sanitized = word.trim().lowercase()
+        val sanitizedInput = word.trim().lowercase()
+        val encodedQuery = sanitizedInput.replace(" ", "%20")
 
-        // 1. Fetch from Urban Dictionary
         val urbanEntries = try {
-            val urbanUrl = "https://api.urbandictionary.com/v0/define?term=$sanitized"
+            val urbanUrl = "https://api.urbandictionary.com/v0/define?term=$encodedQuery"
             val response: UrbanResponse = client.get(urbanUrl).body()
             response.list.take(3).map {
                 DictionaryEntry(
@@ -61,31 +61,50 @@ class DictionaryRepositoryImpl : DictionaryRepository {
             emptyList()
         }
 
-        // 2. Fetch from Merriam-Webster (Insert your key below)
         val mwApiKey = "2233bca2-414f-4402-b28c-69f7aef9d02e"
         val formalEntries = try {
-            val mwUrl = "https://dictionaryapi.com/api/v3/references/collegiate/json/$sanitized?key=$mwApiKey"
+            val mwUrl = "https://dictionaryapi.com/api/v3/references/collegiate/json/$encodedQuery?key=$mwApiKey"
             val responseText: String = client.get(mwUrl).body()
-            val jsonArray = Json.parseToJsonElement(responseText).jsonArray
+            val jsonElement = Json.parseToJsonElement(responseText)
 
-            jsonArray.mapNotNull { element ->
-                if (element is JsonObject && element.containsKey("shortdef")) {
-                    val fl = element["fl"]?.jsonPrimitive?.contentOrNull ?: "definition"
-                    val defs = element["shortdef"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
-                    defs.firstOrNull()?.let { def ->
-                        DictionaryEntry(
-                            word = sanitized,
-                            source = "Merriam-Webster",
-                            partOfSpeech = fl,
-                            definition = def
-                        )
-                    }
-                } else null
-            }.take(3)
+            if (jsonElement is JsonArray && jsonElement.isNotEmpty()) {
+                val firstItem = jsonElement.firstOrNull()
+                if (firstItem is JsonPrimitive && firstItem.isString) {
+                    val correctedWord = firstItem.content
+                    val correctedEncoded = correctedWord.replace(" ", "%20")
+
+                    val correctedMwUrl = "https://dictionaryapi.com/api/v3/references/collegiate/json/$correctedEncoded?key=$mwApiKey"
+                    val correctedResponseText: String = client.get(correctedMwUrl).body()
+                    val correctedArray = Json.parseToJsonElement(correctedResponseText).jsonArray
+
+                    parseMwDefinitions(correctedArray, correctedWord)
+                } else {
+                    parseMwDefinitions(jsonElement, sanitizedInput)
+                }
+            } else {
+                emptyList()
+            }
         } catch (e: Exception) {
             emptyList()
         }
 
         return Pair(formalEntries, urbanEntries)
+    }
+
+    private fun parseMwDefinitions(jsonArray: JsonArray, targetWord: String): List<DictionaryEntry> {
+        return jsonArray.mapNotNull { element ->
+            if (element is JsonObject && element.containsKey("shortdef")) {
+                val fl = element["fl"]?.jsonPrimitive?.contentOrNull ?: "definition"
+                val defs = element["shortdef"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
+                defs.firstOrNull()?.let { def ->
+                    DictionaryEntry(
+                        word = targetWord,
+                        source = "Merriam-Webster",
+                        partOfSpeech = fl,
+                        definition = def
+                    )
+                }
+            } else null
+        }.take(3)
     }
 }
