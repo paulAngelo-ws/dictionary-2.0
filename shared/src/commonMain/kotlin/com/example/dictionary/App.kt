@@ -107,7 +107,12 @@ fun App() {
                     )
                     AppTab.RESULT -> ResultScreen(
                         word = activeWord,
-                        state = state
+                        state = state,
+                        onSearchSuggestion = { suggestedWord ->
+                            activeWord = suggestedWord
+                            searchQuery = suggestedWord
+                            viewModel.searchWord(suggestedWord)
+                        }
                     )
                     AppTab.HISTORY -> HistoryScreen(
                         history = history,

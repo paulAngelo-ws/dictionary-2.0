@@ -2,7 +2,6 @@ package com.example.dictionary.presentation
 
 import com.example.dictionary.data.DictionaryRepository
 import com.example.dictionary.data.DictionaryRepositoryImpl
-import com.example.dictionary.domain.DictionaryEntry
 import com.example.dictionary.domain.HistoryItem
 import com.example.dictionary.domain.UiState
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +28,11 @@ class DictionaryViewModel(
         if (bypassApiIfCached) {
             val existing = _searchHistory.value.find { it.word.lowercase() == sanitized }
             if (existing != null) {
-                _uiState.value = UiState.Success(existing.formalEntries, existing.urbanEntries)
+                _uiState.value = UiState.Success(
+                    formalEntries = existing.formalEntries,
+                    urbanEntries = existing.urbanEntries,
+                    didYouMeanSuggestion = null
+                )
                 return
             }
         }
@@ -37,13 +40,21 @@ class DictionaryViewModel(
         scope.launch {
             _uiState.value = UiState.Loading
             try {
-                val (formal, urban) = repository.fetchDefinitions(sanitized)
-                if (formal.isEmpty() && urban.isEmpty()) {
+                val (formal, urban, didYouMean) = repository.fetchDefinitions(sanitized)
+
+                // Even if formal is empty due to a typo, if urban has results or didYouMean exists, show Success
+                if (formal.isEmpty() && urban.isEmpty() && didYouMean == null) {
                     _uiState.value = UiState.Error("No definitions found for '$sanitized'.")
                 } else {
-                    _uiState.value = UiState.Success(formalEntries = formal, urbanEntries = urban)
+                    _uiState.value = UiState.Success(
+                        formalEntries = formal,
+                        urbanEntries = urban,
+                        didYouMeanSuggestion = didYouMean
+                    )
 
-                    val snippet = formal.firstOrNull()?.definition ?: urban.firstOrNull()?.definition ?: "No definition snippet."
+                    val snippet = formal.firstOrNull()?.definition
+                        ?: urban.firstOrNull()?.definition
+                        ?: "Spelling suggestion available."
 
                     val updatedList = _searchHistory.value.toMutableList()
                     val index = updatedList.indexOfFirst { it.word.lowercase() == sanitized }

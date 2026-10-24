@@ -21,7 +21,11 @@ import com.example.dictionary.domain.DictionaryEntry
 import com.example.dictionary.domain.UiState
 
 @Composable
-fun ResultScreen(word: String, state: UiState) {
+fun ResultScreen(
+    word: String,
+    state: UiState,
+    onSearchSuggestion: (String) -> Unit = {}
+) {
     var showUrbanSlang by remember { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF9F9FB)) {
@@ -68,6 +72,41 @@ fun ResultScreen(word: String, state: UiState) {
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+
+                            // Render "Did you mean...?" banner if Merriam-Webster offered a correction
+                            if (!state.didYouMeanSuggestion.isNullOrBlank()) {
+                                item {
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { onSearchSuggestion(state.didYouMeanSuggestion) },
+                                        color = Color(0xFFE3F2FD),
+                                        border = BorderStroke(1.dp, Color(0xFF90CAF9)),
+                                        shape = Shapes().extraSmall
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(14.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text("💡", fontSize = 16.sp)
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Column {
+                                                Text(
+                                                    "Did you mean: ${state.didYouMeanSuggestion.uppercase()}?",
+                                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                                    color = Color(0xFF0D47A1)
+                                                )
+                                                Text(
+                                                    "Click here to search the corrected spelling.",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = Color(0xFF1565C0)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                }
+                            }
 
                             if (state.formalEntries.isNotEmpty()) {
                                 item {
