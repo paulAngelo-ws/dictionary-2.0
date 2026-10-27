@@ -1,13 +1,18 @@
 package com.example.dictionary.data
 
 import com.example.dictionary.domain.DictionaryEntry
+import com.example.dictionary.domain.DictionaryResult
+import com.example.dictionary.domain.DictionaryRepository
+import com.example.dictionary.domain.HistoryItem
+import com.example.dictionary.data.local.HistoryDao
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
+import kotlinx.coroutines.CancellationException
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 
@@ -21,35 +26,33 @@ private data class UrbanDefinition(
     val example: String = ""
 )
 
-// Updated to include the suggested correction string
-interface DictionaryRepository {
-    suspend fun fetchDefinitions(word: String): Triple<List<DictionaryEntry>, List<DictionaryEntry>, String?>
-}
+// Module 6: App supplies the client and API key through the constructor.
+class DictionaryRepositoryImpl(
+    private val dao: HistoryDao,
+    private val client: HttpClient,
+    private val apiKey: String
+) : DictionaryRepository {
+    private val json = Json { ignoreUnknownKeys = true }
 
-class DictionaryRepositoryImpl : DictionaryRepository {
-    private val client = HttpClient {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 10000
-            connectTimeoutMillis = 10000
-        }
-        defaultRequest {
-            header(HttpHeaders.UserAgent, "Mozilla/5.0")
-        }
-    }
-
-    override suspend fun fetchDefinitions(word: String): Triple<List<DictionaryEntry>, List<DictionaryEntry>, String?> {
+    override suspend fun fetchDefinitions(word: String, forceRefresh: Boolean): DictionaryResult? {
         val sanitizedInput = word.trim().lowercase()
-        val encodedQuery = sanitizedInput.replace(" ", "%20")
+        // Module 9: read the local database first, unless explicitly refreshing.
+        if (!forceRefresh) {
+            val cached = dao.findWord(sanitizedInput)
+            if (cached != null) {
+                return json.decodeFromString<DictionaryResult>(cached.resultJson).copy(isCached = true)
+            }
+        }
+        var failedSources = 0
 
         val urbanEntries = try {
-            val urbanUrl = "https://api.urbandictionary.com/v0/define?term=$encodedQuery"
-            val response: UrbanResponse = client.get(urbanUrl).body()
+            val httpResponse = client.get("https://api.urbandictionary.com/v0/define") {
+                parameter("term", sanitizedInput)
+            }
+            if (httpResponse.status != HttpStatusCode.OK) {
+                error("Urban Dictionary is unavailable.")
+            }
+            val response: UrbanResponse = httpResponse.body()
             response.list.take(3).map {
                 DictionaryEntry(
                     word = it.word,
@@ -58,42 +61,86 @@ class DictionaryRepositoryImpl : DictionaryRepository {
                     example = it.example.replace("[", "").replace("]", "")
                 )
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
+            failedSources++
+            println("Dictionary request failed: ${e::class.simpleName}")
             emptyList()
         }
 
-        val mwApiKey = "2233bca2-414f-4402-b28c-69f7aef9d02e"
         var mwDidYouMean: String? = null
 
         val formalEntries = try {
-            val mwUrl = "https://dictionaryapi.com/api/v3/references/collegiate/json/$sanitizedInput?key=$mwApiKey"
-            val responseText: String = client.get(mwUrl).body()
-            val jsonArray = Json.parseToJsonElement(responseText).jsonArray
-
-            // Merriam-Webster returns an array of strings (e.g. ["receive"]) if misspelled
-            if (jsonArray.isNotEmpty() && jsonArray[0] is JsonPrimitive) {
-                mwDidYouMean = jsonArray.firstOrNull()?.jsonPrimitive?.contentOrNull
+            val httpResponse = client.get(
+                "https://dictionaryapi.com/api/v3/references/collegiate/json/${sanitizedInput.encodeURLPathPart()}"
+            ) {
+                parameter("key", apiKey)
+            }
+            if (httpResponse.status != HttpStatusCode.OK) {
+                error("Merriam-Webster is unavailable.")
+            }
+            // This API returns either spelling strings OR definition objects.
+            // Only inspect the first item; serialization handles the definition fields.
+            val response: JsonArray = httpResponse.body()
+            if (response.firstOrNull() is JsonPrimitive) {
+                mwDidYouMean = response.first().jsonPrimitive.content
                 emptyList()
             } else {
-                jsonArray.mapNotNull { element ->
-                    if (element is JsonObject && element.containsKey("shortdef")) {
-                        val fl = element["fl"]?.jsonPrimitive?.contentOrNull ?: "definition"
-                        val defs = element["shortdef"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
-                        defs.firstOrNull()?.let { def ->
-                            DictionaryEntry(
-                                word = sanitizedInput,
-                                source = "Merriam-Webster",
-                                partOfSpeech = fl,
-                                definition = def
-                            )
-                        }
-                    } else null
-                }.take(3)
+                val definitions = json.decodeFromJsonElement<List<FormalDefinition>>(response)
+                val entries = mutableListOf<DictionaryEntry>()
+                for (item in definitions.take(3)) {
+                    if (item.shortdef.isNotEmpty()) {
+                        entries.add(DictionaryEntry(
+                            word = sanitizedInput,
+                            source = "Merriam-Webster",
+                            partOfSpeech = item.fl,
+                            definition = item.shortdef.first()
+                        ))
+                    }
+                }
+                entries
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
+            failedSources++
+            println("Dictionary request failed: ${e::class.simpleName}")
             emptyList()
         }
 
-        return Triple(formalEntries, urbanEntries, mwDidYouMean)
+        if (formalEntries.isEmpty() && urbanEntries.isEmpty() && failedSources > 0 && mwDidYouMean == null) {
+            return null
+        }
+        val result = DictionaryResult(formalEntries, urbanEntries, mwDidYouMean)
+        // Save useful results, including when only one dictionary is reachable.
+        if (formalEntries.isNotEmpty() || urbanEntries.isNotEmpty()) {
+            val snippet = formalEntries.firstOrNull()?.definition
+                ?: urbanEntries.first().definition
+            dao.saveWord(sanitizedInput, snippet, json.encodeToString(result))
+        }
+        return result
     }
+
+    // Modules 7 and 9: Room emits history again whenever saved data changes.
+    override fun observeHistory(): Flow<List<HistoryItem>> {
+        return dao.observeHistory().map { savedWords ->
+            savedWords.map { saved ->
+                val result = json.decodeFromString<DictionaryResult>(saved.resultJson)
+                HistoryItem(saved.word, saved.snippet, result.formalEntries,
+                    result.urbanEntries, saved.isFavorite)
+            }
+        }
+    }
+
+    override suspend fun toggleFavorite(word: String) {
+        dao.toggleFavorite(word.trim().lowercase())
+    }
+
 }
+
+@Serializable
+private data class FormalDefinition(
+    val fl: String = "",
+    val shortdef: List<String> = emptyList()
+)

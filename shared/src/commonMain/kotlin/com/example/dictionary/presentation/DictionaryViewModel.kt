@@ -1,91 +1,136 @@
 package com.example.dictionary.presentation
 
-import com.example.dictionary.data.DictionaryRepository
-import com.example.dictionary.data.DictionaryRepositoryImpl
+import com.example.dictionary.domain.DictionaryResult
 import com.example.dictionary.domain.HistoryItem
-import com.example.dictionary.domain.UiState
+import com.example.dictionary.domain.HistoryUseCase
+import com.example.dictionary.domain.SearchWordUseCase
+import com.example.dictionary.domain.SlangPreferenceUseCase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+// Module 7: this state holder uses plain Kotlin and Flow on every platform.
 class DictionaryViewModel(
-    private val repository: DictionaryRepository = DictionaryRepositoryImpl()
+    private val searchWordUseCase: SearchWordUseCase,
+    private val historyUseCase: HistoryUseCase,
+    private val slangPreferenceUseCase: SlangPreferenceUseCase,
+    private val scope: CoroutineScope
 ) {
-    private val scope = CoroutineScope(Dispatchers.Main)
-
+    private var searchJob: Job? = null
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
     private val _searchHistory = MutableStateFlow<List<HistoryItem>>(emptyList())
     val searchHistory: StateFlow<List<HistoryItem>> = _searchHistory
 
-    fun searchWord(word: String, bypassApiIfCached: Boolean = true) {
-        if (word.isBlank()) return
-        val sanitized = word.trim().lowercase()
+    private val _showSlang = MutableStateFlow(false)
+    val showSlang: StateFlow<Boolean> = _showSlang
 
-        if (bypassApiIfCached) {
-            val existing = _searchHistory.value.find { it.word.lowercase() == sanitized }
-            if (existing != null) {
-                _uiState.value = UiState.Success(
-                    formalEntries = existing.formalEntries,
-                    urbanEntries = existing.urbanEntries,
-                    didYouMeanSuggestion = null
-                )
-                return
+    // Module 7: messages happen once; screen values belong in StateFlow.
+    private val _events = MutableSharedFlow<String>()
+    val events: SharedFlow<String> = _events
+
+    init {
+        scope.launch {
+            try {
+                historyUseCase.observeHistory().collect { _searchHistory.value = it }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _events.emit("Could not read saved history.")
             }
         }
-
         scope.launch {
+            try {
+                slangPreferenceUseCase.observeShowSlang().collect { _showSlang.value = it }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _events.emit("Could not read your saved preference.")
+            }
+        }
+    }
+
+    fun searchWord(word: String, forceRefresh: Boolean = false) {
+        if (word.isBlank()) return
+        searchJob?.cancel()
+        searchJob = scope.launch {
+            val previousState = _uiState.value
             _uiState.value = UiState.Loading
             try {
-                val (formal, urban, didYouMean) = repository.fetchDefinitions(sanitized)
-
-                // Even if formal is empty due to a typo, if urban has results or didYouMean exists, show Success
-                if (formal.isEmpty() && urban.isEmpty() && didYouMean == null) {
-                    _uiState.value = UiState.Error("No definitions found for '$sanitized'.")
-                } else {
-                    _uiState.value = UiState.Success(
-                        formalEntries = formal,
-                        urbanEntries = urban,
-                        didYouMeanSuggestion = didYouMean
-                    )
-
-                    val snippet = formal.firstOrNull()?.definition
-                        ?: urban.firstOrNull()?.definition
-                        ?: "Spelling suggestion available."
-
-                    val updatedList = _searchHistory.value.toMutableList()
-                    val index = updatedList.indexOfFirst { it.word.lowercase() == sanitized }
-
-                    if (index >= 0) {
-                        val old = updatedList[index]
-                        updatedList[index] = old.copy(formalEntries = formal, urbanEntries = urban, snippet = snippet)
+                val result = searchWordUseCase(word, forceRefresh)
+                if (result == null) {
+                    if (forceRefresh && previousState is UiState.Success) {
+                        _uiState.value = previousState
+                        _events.emit("Could not refresh. Showing the saved definition.")
                     } else {
-                        updatedList.add(0, HistoryItem(word = sanitized, snippet = snippet, formalEntries = formal, urbanEntries = urban))
+                        _uiState.value = UiState.Error("Could not search. Check your connection and try again.")
                     }
-
-                    _searchHistory.value = sortHistory(updatedList)
+                } else {
+                    showResult(word, result)
+                    // Module 9: display cached data first, then refresh in the background.
+                    if (result.isCached) {
+                        try {
+                            val fresh = searchWordUseCase(word, forceRefresh = true)
+                            if (fresh != null && hasDefinitions(fresh)) {
+                                showResult(word, fresh)
+                            } else {
+                                _events.emit("Showing saved definitions. A refresh is unavailable.")
+                            }
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            _events.emit("Showing saved definitions. A refresh is unavailable.")
+                        }
+                    }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Network error: ${e.message}")
+                _uiState.value = UiState.Error("Could not load or save this word. Please try again.")
             }
+        }
+    }
+
+    private fun hasDefinitions(result: DictionaryResult): Boolean {
+        return result.formalEntries.isNotEmpty() || result.urbanEntries.isNotEmpty()
+    }
+
+    private fun showResult(word: String, result: DictionaryResult) {
+        _uiState.value = if (!hasDefinitions(result) && result.didYouMeanSuggestion == null) {
+            UiState.Error("No definitions found for '${word.trim()}'.")
+        } else {
+            UiState.Success(result.formalEntries, result.urbanEntries, result.didYouMeanSuggestion)
         }
     }
 
     fun toggleFavorite(word: String) {
-        val updatedList = _searchHistory.value.map { item ->
-            if (item.word.lowercase() == word.lowercase()) {
-                item.copy(isFavorite = !item.isFavorite)
-            } else {
-                item
+        scope.launch {
+            try {
+                historyUseCase.toggleFavorite(word)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _events.emit("Could not save this favorite.")
             }
         }
-        _searchHistory.value = sortHistory(updatedList)
     }
 
-    private fun sortHistory(list: List<HistoryItem>): List<HistoryItem> {
-        return list.sortedWith(compareByDescending<HistoryItem> { it.isFavorite })
+    fun saveShowSlang(enabled: Boolean) {
+        scope.launch {
+            try {
+                slangPreferenceUseCase.saveShowSlang(enabled)
+                _events.emit("Preference saved.")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _events.emit("Could not save your preference.")
+            }
+        }
     }
 }

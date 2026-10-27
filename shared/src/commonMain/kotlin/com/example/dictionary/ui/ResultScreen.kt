@@ -1,8 +1,5 @@
 package com.example.dictionary.ui
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,15 +15,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dictionary.domain.DictionaryEntry
-import com.example.dictionary.domain.UiState
+import com.example.dictionary.presentation.UiState
 
 @Composable
 fun ResultScreen(
     word: String,
     state: UiState,
-    onSearchSuggestion: (String) -> Unit = {}
+    showSlangByDefault: Boolean,
+    onRefresh: () -> Unit,
+    onSearchSuggestion: (String) -> Unit
 ) {
-    var showUrbanSlang by remember { mutableStateOf(false) }
+    var showUrbanSlang by remember(word, showSlangByDefault) { mutableStateOf(showSlangByDefault) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF9F9FB)) {
         Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
@@ -54,6 +53,11 @@ fun ResultScreen(
                 HorizontalDivider(color = Color.Black, thickness = 2.dp)
             }
 
+            if (word.isNotBlank()) {
+                TextButton(onClick = onRefresh, enabled = state !is UiState.Loading) {
+                    Text("Refresh definitions")
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
             Box(modifier = Modifier.fillMaxSize()) {
@@ -157,14 +161,7 @@ fun ResultScreen(
 
                                 item {
                                     Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .animateContentSize(
-                                                animationSpec = tween(
-                                                    durationMillis = 300,
-                                                    easing = FastOutSlowInEasing
-                                                )
-                                            )
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
                                         if (showUrbanSlang) {
                                             Spacer(modifier = Modifier.height(12.dp))

@@ -8,6 +8,10 @@ plugins {
 
 dependencies {
     implementation(project(":shared"))
+    testImplementation(libs.kotlin.testJunit)
+    testImplementation(libs.androidx.navigation.compose)
+    testImplementation(libs.androidx.lifecycle.viewmodelCompose)
+    testImplementation(libs.androidx.lifecycle.runtimeCompose)
 
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutinesSwing)

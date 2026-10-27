@@ -7,8 +7,9 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 
-    //idk
-    kotlin("plugin.serialization") version "2.1.0"
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 kotlin {
@@ -26,12 +27,14 @@ kotlin {
 
     js {
         browser()
+        useEsModules()
         binaries.executable()
     }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
+        useEsModules()
         binaries.executable()
     }
 
@@ -58,6 +61,8 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.androidx.sqlite.bundled)
+            implementation("io.ktor:ktor-client-okhttp:3.0.0")
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
         }
@@ -71,36 +76,50 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
-            //Api Integrations (idk ima search later)
+            // Modules 6 and 9: shared networking and JSON dependencies.
+            implementation("io.ktor:ktor-client-logging:3.0.0")
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.datastore)
             implementation("io.ktor:ktor-client-core:3.0.0")
             implementation("io.ktor:ktor-client-content-negotiation:3.0.0")
             implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-
-            // Compose Navigation (or jetbrains navigation)
-            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.8.0-alpha10") // or your preferred KMP navigation version
-            // Ktor & Kotlinx Serialization
-            implementation("io.ktor:ktor-client-core:2.3.12")
-            implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+            implementation(libs.androidx.navigation.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        iosMain.dependencies {
+            implementation(libs.androidx.sqlite.bundled)
+            implementation("io.ktor:ktor-client-darwin:3.0.0")
+        }
+        jvmTest.dependencies {
+            implementation("io.ktor:ktor-client-mock:3.0.0")
+        }
+        jvmMain.dependencies {
+            implementation(libs.androidx.sqlite.bundled)
+            implementation("io.ktor:ktor-client-cio:3.0.0")
+        }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
+            implementation("io.ktor:ktor-client-js:3.0.0")
+            implementation(project(":browserStorage"))
         }
-        // --- ADD THIS FOR DESKTOP (JVM) RUNTIME ---
-        // Note: In your template, you can put jvmMain dependencies right inside sourceSets like this:
-        val jvmMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-cio:3.0.0")
-            }
+        wasmJsMain.dependencies {
+            implementation("io.ktor:ktor-client-js:3.0.0")
+            implementation(project(":browserStorage"))
         }
     }
 }
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
+    listOf("kspAndroid", "kspJvm", "kspIosArm64", "kspIosSimulatorArm64", "kspJs", "kspWasmJs").forEach {
+        add(it, libs.androidx.room.compiler)
+    }
+}
+
+room3 {
+    schemaDirectory(layout.projectDirectory.dir("schemas"))
 }

@@ -13,7 +13,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun InputScreen(query: String, onQueryChange: (String) -> Unit, onSearchClick: (String) -> Unit) {
+fun InputScreen(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearchClick: (String) -> Unit,
+    showSlang: Boolean,
+    onShowSlangChange: (Boolean) -> Unit
+) {
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF9F9FB)) {
         Column(
             modifier = Modifier.fillMaxSize().padding(32.dp),
@@ -54,6 +60,12 @@ fun InputScreen(query: String, onQueryChange: (String) -> Unit, onSearchClick: (
                     unfocusedContainerColor = Color.White
                 )
             )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = showSlang, onCheckedChange = onShowSlangChange)
+                Text("Show slang by default (may contain explicit language)",
+                    style = MaterialTheme.typography.bodySmall)
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

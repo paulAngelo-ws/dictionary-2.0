@@ -19,13 +19,11 @@ data class HistoryItem(
     val isFavorite: Boolean = false
 )
 
-sealed class UiState {
-    object Idle : UiState()
-    object Loading : UiState()
-    data class Success(
-        val formalEntries: List<DictionaryEntry>,
-        val urbanEntries: List<DictionaryEntry>,
-        val didYouMeanSuggestion: String? = null
-    ) : UiState()
-    data class Error(val message: String) : UiState()
-}
+// A named result is easier to understand than Triple.first/second/third.
+@Serializable
+data class DictionaryResult(
+    val formalEntries: List<DictionaryEntry>,
+    val urbanEntries: List<DictionaryEntry>,
+    val didYouMeanSuggestion: String? = null,
+    val isCached: Boolean = false
+)

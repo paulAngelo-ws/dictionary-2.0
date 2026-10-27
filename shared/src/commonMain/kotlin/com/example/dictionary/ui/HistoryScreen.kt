@@ -44,7 +44,7 @@ fun HistoryScreen(
 
             if (history.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No records found in local memory.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text("No saved searches yet.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
