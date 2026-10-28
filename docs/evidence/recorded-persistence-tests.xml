@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="PersistenceTest[jvm]" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-27T12:33:04.568Z" hostname="Paul" time="3.869">
+  <properties/>
+  <testcase name="spellingOnlyAndMalformedResponsesAreNotSavedAsDefinitions[jvm]" classname="com.example.dictionary.PersistenceTest" time="2.669"/>
+  <testcase name="definitionsAndFavoritesSurviveReopeningWithoutNetwork[jvm]" classname="com.example.dictionary.PersistenceTest" time="0.26"/>
+  <testcase name="failedRefreshKeepsTheSavedWordAndFavorite[jvm]" classname="com.example.dictionary.PersistenceTest" time="0.222"/>
+  <testcase name="preferenceSurvivesRecreatingDataStore[jvm]" classname="com.example.dictionary.PersistenceTest" time="0.462"/>
+  <testcase name="successfulRefreshUpdatesDefinitionsWithoutClearingFavorites[jvm]" classname="com.example.dictionary.PersistenceTest" time="0.188"/>
+  <system-out><![CDATA[Dictionary request failed: JsonConvertException
+Dictionary request failed: JsonConvertException
+Dictionary request failed: IllegalStateException
+Dictionary request failed: IllegalStateException
+]]></system-out>
+  <system-err><![CDATA[SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+]]></system-err>
+</testsuite>

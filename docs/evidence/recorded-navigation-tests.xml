@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.dictionary.NavigationCompatibilityTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-27T12:34:43.516Z" hostname="Paul" time="3.229">
+  <properties/>
+  <testcase name="navigationCanRestoreEntriesAndReadWordArguments" classname="com.example.dictionary.NavigationCompatibilityTest" time="3.201"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

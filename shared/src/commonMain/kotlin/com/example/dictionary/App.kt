@@ -17,12 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.dictionary.data.AppStorage
-import com.example.dictionary.data.DictionaryPreferences
 import com.example.dictionary.data.DictionaryRepositoryImpl
 import com.example.dictionary.data.createHttpClient
-import com.example.dictionary.domain.HistoryUseCase
-import com.example.dictionary.domain.SearchWordUseCase
-import com.example.dictionary.domain.SlangPreferenceUseCase
 import com.example.dictionary.presentation.DictionaryViewModel
 import com.example.dictionary.presentation.UiState
 import com.example.dictionary.ui.HistoryScreen
@@ -30,7 +26,6 @@ import com.example.dictionary.ui.InputScreen
 import com.example.dictionary.ui.ResultScreen
 import io.ktor.http.encodeURLParameter
 
-// Module 8: a small, fixed set of destinations, with a word for the result.
 sealed class Destination {
     object Input : Destination()
     object History : Destination()
@@ -40,33 +35,33 @@ sealed class Destination {
 @Composable
 fun App(storage: AppStorage) {
     val scope = rememberCoroutineScope()
+
     val client = remember { createHttpClient() }
     DisposableEffect(client) {
         onDispose { client.close() }
     }
-    // Module 6: simple constructor injection; no DI framework is needed.
+
     val viewModel = remember(storage) {
         val repository = DictionaryRepositoryImpl(
             storage.database.historyDao(), client, "2233bca2-414f-4402-b28c-69f7aef9d02e"
         )
         DictionaryViewModel(
-            SearchWordUseCase(repository),
-            HistoryUseCase(repository),
-            SlangPreferenceUseCase(DictionaryPreferences(storage.preferences)),
+            repository,
             scope
         )
     }
+
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: "input"
+
     var searchQuery by remember { mutableStateOf("") }
     var lastWord by remember { mutableStateOf("") }
+
     val state by viewModel.uiState.collectAsState()
     val history by viewModel.searchHistory.collectAsState()
-    val showSlang by viewModel.showSlang.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Module 7: collect one-time messages separately from persistent screen state.
     LaunchedEffect(viewModel) {
         viewModel.events.collect { message -> snackbarHostState.showSnackbar(message) }
     }
@@ -134,21 +129,19 @@ fun App(storage: AppStorage) {
                     InputScreen(
                         query = searchQuery,
                         onQueryChange = { searchQuery = it },
-                        onSearchClick = { navigate(Destination.Result(it)) },
-                        showSlang = showSlang,
-                        onShowSlangChange = { viewModel.saveShowSlang(it) }
+                        onSearchClick = { navigate(Destination.Result(it)) }
                     )
                 }
                 composable("result") {
-                    ResultScreen("", UiState.Idle, showSlang, {}, {})
+                    ResultScreen("", UiState.Idle, {}, {})
                 }
-                // Module 8: pass the word through the route, including deep links.
                 composable(
                     route = "result/{word}",
                     arguments = listOf(navArgument("word") { type = NavType.StringType }),
                     deepLinks = listOf(navDeepLink { uriPattern = "dictionary://word/{word}" })
                 ) { entry ->
                     val word = entry.arguments?.read { getString("word") }.orEmpty()
+
                     LaunchedEffect(word) {
                         lastWord = word
                         searchQuery = word
@@ -157,7 +150,6 @@ fun App(storage: AppStorage) {
                     ResultScreen(
                         word = word,
                         state = state,
-                        showSlangByDefault = showSlang,
                         onRefresh = { viewModel.searchWord(word, forceRefresh = true) },
                         onSearchSuggestion = { navigate(Destination.Result(it)) }
                     )

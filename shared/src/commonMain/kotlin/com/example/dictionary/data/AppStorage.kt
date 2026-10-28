@@ -1,11 +1,6 @@
 package com.example.dictionary.data
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import com.example.dictionary.data.local.DictionaryDatabase
 
-// Platform entry points create these once and inject them into App.
-class AppStorage(
-    val database: DictionaryDatabase,
-    val preferences: DataStore<Preferences>
-)
+// Each platform creates the database and passes it to the shared app.
+class AppStorage(val database: DictionaryDatabase)

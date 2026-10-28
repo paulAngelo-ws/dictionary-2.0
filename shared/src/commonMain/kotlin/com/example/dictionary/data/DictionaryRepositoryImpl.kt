@@ -16,16 +16,6 @@ import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 
-@Serializable
-private data class UrbanResponse(val list: List<UrbanDefinition>)
-
-@Serializable
-private data class UrbanDefinition(
-    val definition: String,
-    val word: String,
-    val example: String = ""
-)
-
 // Module 6: App supplies the client and API key through the constructor.
 class DictionaryRepositoryImpl(
     private val dao: HistoryDao,
@@ -40,35 +30,10 @@ class DictionaryRepositoryImpl(
         if (!forceRefresh) {
             val cached = dao.findWord(sanitizedInput)
             if (cached != null) {
-                return json.decodeFromString<DictionaryResult>(cached.resultJson).copy(isCached = true)
+                val result = json.decodeFromString<DictionaryResult>(cached.resultJson)
+                if (result.formalEntries.isNotEmpty()) return result.copy(isCached = true)
             }
         }
-        var failedSources = 0
-
-        val urbanEntries = try {
-            val httpResponse = client.get("https://api.urbandictionary.com/v0/define") {
-                parameter("term", sanitizedInput)
-            }
-            if (httpResponse.status != HttpStatusCode.OK) {
-                error("Urban Dictionary is unavailable.")
-            }
-            val response: UrbanResponse = httpResponse.body()
-            response.list.take(3).map {
-                DictionaryEntry(
-                    word = it.word,
-                    source = "Urban Dictionary",
-                    definition = it.definition.replace("[", "").replace("]", ""),
-                    example = it.example.replace("[", "").replace("]", "")
-                )
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            failedSources++
-            println("Dictionary request failed: ${e::class.simpleName}")
-            emptyList()
-        }
-
         var mwDidYouMean: String? = null
 
         val formalEntries = try {
@@ -104,20 +69,12 @@ class DictionaryRepositoryImpl(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            failedSources++
-            println("Dictionary request failed: ${e::class.simpleName}")
-            emptyList()
-        }
-
-        if (formalEntries.isEmpty() && urbanEntries.isEmpty() && failedSources > 0 && mwDidYouMean == null) {
             return null
         }
-        val result = DictionaryResult(formalEntries, urbanEntries, mwDidYouMean)
-        // Save useful results, including when only one dictionary is reachable.
-        if (formalEntries.isNotEmpty() || urbanEntries.isNotEmpty()) {
-            val snippet = formalEntries.firstOrNull()?.definition
-                ?: urbanEntries.first().definition
-            dao.saveWord(sanitizedInput, snippet, json.encodeToString(result))
+
+        val result = DictionaryResult(formalEntries, mwDidYouMean)
+        if (formalEntries.isNotEmpty()) {
+            dao.saveWord(sanitizedInput, formalEntries.first().definition, json.encodeToString(result))
         }
         return result
     }
@@ -125,10 +82,10 @@ class DictionaryRepositoryImpl(
     // Modules 7 and 9: Room emits history again whenever saved data changes.
     override fun observeHistory(): Flow<List<HistoryItem>> {
         return dao.observeHistory().map { savedWords ->
-            savedWords.map { saved ->
+            savedWords.mapNotNull { saved ->
                 val result = json.decodeFromString<DictionaryResult>(saved.resultJson)
-                HistoryItem(saved.word, saved.snippet, result.formalEntries,
-                    result.urbanEntries, saved.isFavorite)
+                if (result.formalEntries.isEmpty()) null
+                else HistoryItem(saved.word, result.formalEntries.first().definition, result.formalEntries, saved.isFavorite)
             }
         }
     }

@@ -1,9 +1,6 @@
 package com.example.dictionary.data
 
 import android.content.Context
-import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.core.FileStorage
-import androidx.datastore.preferences.core.PreferencesFileSerializer
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.dictionary.data.local.DictionaryDatabase
@@ -17,13 +14,7 @@ fun createAppStorage(context: Context): AppStorage {
         context = appContext,
         name = appContext.getDatabasePath("dictionary.db").absolutePath
     ).setDriver(BundledSQLiteDriver()).build()
-    val preferences = DataStoreFactory.create(
-        storage = FileStorage(
-            serializer = PreferencesFileSerializer,
-            produceFile = { appContext.filesDir.resolve("dictionary.preferences_pb") }
-        )
-    )
-    val storage = AppStorage(database, preferences)
+    val storage = AppStorage(database)
     appStorage = storage
     return storage
 }

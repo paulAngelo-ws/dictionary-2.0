@@ -1,11 +1,7 @@
 package com.example.dictionary
 
-import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.core.FileStorage
-import androidx.datastore.preferences.core.PreferencesFileSerializer
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.example.dictionary.data.DictionaryPreferences
 import com.example.dictionary.data.DictionaryRepositoryImpl
 import com.example.dictionary.data.configureDictionaryClient
 import com.example.dictionary.data.local.DictionaryDatabase
@@ -17,10 +13,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import java.io.File
 import java.nio.file.Files
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -45,14 +37,13 @@ class PersistenceTest {
 
     private fun client(
         formal: String = """[{"fl":"noun","shortdef":["a greeting"],"extra":"ignored"}]""",
-        urban: String = """{"list":[{"word":"hello","definition":"a [greeting]","example":"hello there"}]}""",
         status: HttpStatusCode = HttpStatusCode.OK,
         onRequest: () -> Unit = {}
     ): HttpClient {
         return HttpClient(MockEngine { request ->
+            assertEquals("dictionaryapi.com", request.url.host)
             onRequest()
-            val body = if (request.url.host == "api.urbandictionary.com") urban else formal
-            respond(body, status, headersOf(HttpHeaders.ContentType, "application/json"))
+            respond(formal, status, headersOf(HttpHeaders.ContentType, "application/json"))
         }) { configureDictionaryClient() }.also { clients.add(it) }
     }
 
@@ -70,7 +61,6 @@ class PersistenceTest {
             val repository = DictionaryRepositoryImpl(db.historyDao(), client(), "test-key")
             val result = assertNotNull(repository.fetchDefinitions(" Hello "))
             assertEquals("a greeting", result.formalEntries.first().definition)
-            assertEquals("a greeting", result.urbanEntries.first().definition)
             repository.toggleFavorite("hello")
             db.close()
 
@@ -84,6 +74,23 @@ class PersistenceTest {
             assertEquals(1, history.size)
             assertTrue(history.first().isFavorite)
             assertEquals("hello", history.first().word)
+        }
+    }
+
+    @Test
+    fun olderSavedResultsKeepFormalDefinitionsAndHideRemovedContent() = runBlocking {
+        withTimeout(20000) {
+            val db = openDatabase()
+            val oldEntries = "\"urbanEntries\":[{\"word\":\"hello\",\"source\":\"Urban Dictionary\",\"definition\":\"old slang\"}]"
+            db.historyDao().saveWord("hello", "old slang", """{"formalEntries":[{"word":"hello","source":"Merriam-Webster","definition":"a greeting"}],$oldEntries}""")
+            db.historyDao().saveWord("removed", "old slang", """{"formalEntries":[],$oldEntries}""")
+            val repository = DictionaryRepositoryImpl(db.historyDao(), client(), "test-key")
+            val result = assertNotNull(repository.fetchDefinitions("hello"))
+            assertTrue(result.isCached)
+            assertEquals("a greeting", result.formalEntries.first().definition)
+            val history = repository.observeHistory().first()
+            assertEquals(listOf("hello"), history.map { it.word })
+            assertEquals("a greeting", history.first().snippet)
         }
     }
 
@@ -125,44 +132,16 @@ class PersistenceTest {
         withTimeout(20000) {
             val db = openDatabase()
             val spelling = DictionaryRepositoryImpl(db.historyDao(), client(
-                formal = """["hello"]""", urban = """{"list":[]}"""
+                formal = """["hello"]"""
             ), "test-key")
             assertEquals("hello", assertNotNull(spelling.fetchDefinitions("helo")).didYouMeanSuggestion)
             assertTrue(spelling.observeHistory().first().isEmpty())
             val broken = DictionaryRepositoryImpl(db.historyDao(), client(
-                formal = "invalid JSON", urban = "invalid JSON"
+                formal = "invalid JSON"
             ), "test-key")
             assertNull(broken.fetchDefinitions("hello"))
             assertTrue(broken.observeHistory().first().isEmpty())
         }
     }
 
-    @Test
-    fun preferenceSurvivesRecreatingDataStore() = runBlocking {
-        withTimeout(20000) {
-            val file = File(directory, "test.preferences_pb")
-            val firstJob = SupervisorJob()
-            val firstStore = DataStoreFactory.create(
-                storage = FileStorage(PreferencesFileSerializer) { file },
-                scope = CoroutineScope(firstJob + Dispatchers.IO)
-            )
-            val firstPreferences = DictionaryPreferences(firstStore)
-            try {
-                assertFalse(firstPreferences.observeShowSlang().first())
-                firstPreferences.saveShowSlang(true)
-            } finally {
-                firstJob.cancelAndJoin()
-            }
-            val secondJob = SupervisorJob()
-            val secondStore = DataStoreFactory.create(
-                storage = FileStorage(PreferencesFileSerializer) { file },
-                scope = CoroutineScope(secondJob + Dispatchers.IO)
-            )
-            try {
-                assertTrue(DictionaryPreferences(secondStore).observeShowSlang().first())
-            } finally {
-                secondJob.cancelAndJoin()
-            }
-        }
-    }
 }

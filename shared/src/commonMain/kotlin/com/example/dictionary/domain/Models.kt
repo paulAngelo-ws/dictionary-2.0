@@ -15,7 +15,6 @@ data class HistoryItem(
     val word: String,
     val snippet: String,
     val formalEntries: List<DictionaryEntry>,
-    val urbanEntries: List<DictionaryEntry>,
     val isFavorite: Boolean = false
 )
 
@@ -23,7 +22,6 @@ data class HistoryItem(
 @Serializable
 data class DictionaryResult(
     val formalEntries: List<DictionaryEntry>,
-    val urbanEntries: List<DictionaryEntry>,
     val didYouMeanSuggestion: String? = null,
     val isCached: Boolean = false
 )

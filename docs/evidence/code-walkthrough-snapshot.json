@@ -1,0 +1,296 @@
+{
+  "date": "2026-10-28",
+  "scope": "Handwritten application, platform, test and build/configuration sources; excludes generated sources, wrapper scripts, binary assets and Xcode project internals.",
+  "files": [
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/domain/Models.kt",
+      "lines": 29,
+      "sha256": "5ed77d4801235d1d4aecd64ceb01a943799562cdb676be41c0b1055612a2e5e7"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/presentation/UiState.kt",
+      "lines": 14,
+      "sha256": "f778370bb59ea9735c01f7cba65db0df4cadaef229315306f566b28a42f69c2c"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/domain/DictionaryRepository.kt",
+      "lines": 10,
+      "sha256": "53efa6a101d5974a0b1d12e97549c1840df1c4646bf50ab30de4fccc74696224"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/domain/SearchWordUseCase.kt",
+      "lines": 7,
+      "sha256": "2b2f49bc824fc9799652524cc10e59f096ca13839015d3618b5701c104c657bd"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/presentation/DictionaryViewModel.kt",
+      "lines": 136,
+      "sha256": "00bf1e189712be256d2e5946041c6d18e773c7006bc563aa5c3f6c43acfc0f78"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/data/DictionaryRepository.kt",
+      "lines": 146,
+      "sha256": "0b819e3b25b28d066f98e359c0b8cd7f6d37831b2c9908c391dd5cb8aeeba1fa"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/App.kt",
+      "lines": 175,
+      "sha256": "4f8d78df2ff72e924775e588ac7d5b0ecba367e25f9a30eb3aa9eaafa8875b3b"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/ui/InputScreen.kt",
+      "lines": 89,
+      "sha256": "1a0fc6cc1d2b28d76d9c4e4a5882892843d59dd7839522e388d3885fa54ee665"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/ui/ResultScreen.kt",
+      "lines": 246,
+      "sha256": "d5142f2342e817164947b93188a80622a1a33da2e6df1c04ccb04a5a42d9d418"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/ui/HistoryScreen.kt",
+      "lines": 96,
+      "sha256": "0952dfd5fa724a544a28d8f1e9c776712f4e076d5256a4338d4d43c57b379a5d"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/domain/HistoryUseCase.kt",
+      "lines": 11,
+      "sha256": "da80650610d666d2fe62bf212e4d24403e29de61876b7dc4cf58b2ce09b7ecc8"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/domain/PreferencesRepository.kt",
+      "lines": 8,
+      "sha256": "852aceef840d1a6e5ebd829dbf4c3bc064264bfa9cb01114752f5315ff65d9eb"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/domain/SlangPreferenceUseCase.kt",
+      "lines": 11,
+      "sha256": "c52bf785c5d12794d80e7f755f7d5aef7bae621dc2babb25dce3cd45dfcd6787"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/data/local/HistoryEntity.kt",
+      "lines": 14,
+      "sha256": "4ce18b8c8cbe6d075582cd3c2e0551146e7cb442881aecff59de6e97ce2dc579"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/data/local/HistoryDao.kt",
+      "lines": 29,
+      "sha256": "032534fd6eb012e32820d01b316d71de9523940c1b283097113419da78d4e84b"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/data/local/DictionaryDatabase.kt",
+      "lines": 18,
+      "sha256": "3654f8e61a00336312f471fbc80b0478bf9618529bdae65b272fe3cb69dd3489"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/data/DictionaryPreferences.kt",
+      "lines": 22,
+      "sha256": "f1b3c3201ede2adf6257dffa43c9cc342b8193883b98c433ad6af302833e573c"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/data/AppStorage.kt",
+      "lines": 11,
+      "sha256": "cfb9a8b46261b402d66927e8997a40706256c8d57b6f28206450a9a94b5c2f6f"
+    },
+    {
+      "file": "shared/src/commonMain/kotlin/com/example/dictionary/data/HttpClientFactory.kt",
+      "lines": 29,
+      "sha256": "e5dfbc761da048c540e9e5bd838cd91fcfe0ab6bd7522c41ece841cb483a2b48"
+    },
+    {
+      "file": "androidApp/build.gradle.kts",
+      "lines": 54,
+      "sha256": "8cc8e139d08d260cc7c4d97c79c202f30482f463115626576f1cf9a7baf3dab6"
+    },
+    {
+      "file": "androidApp/src/main/AndroidManifest.xml",
+      "lines": 30,
+      "sha256": "6babffbb3f87586da7c79fb1904db06de41dec69813f271da3ec034b1e1e5efa"
+    },
+    {
+      "file": "androidApp/src/main/kotlin/com/example/dictionary/MainActivity.kt",
+      "lines": 19,
+      "sha256": "d50adb32486977d04622853fa5df27c2feebf0f82a90f0bf8487fefac4a6ebbd"
+    },
+    {
+      "file": "androidApp/src/main/res/values/strings.xml",
+      "lines": 3,
+      "sha256": "160afde9facec1820d1c0c2d5da9c12a671be3f2b99b8c399bd04b16043132e4"
+    },
+    {
+      "file": "browserStorage/build.gradle.kts",
+      "lines": 27,
+      "sha256": "77d803088d5803a36e75b775dbf5ceed1a3dd4a0cfa153f31d2acd0bd4615a26"
+    },
+    {
+      "file": "browserStorage/src/commonMain/kotlin/com/example/dictionary/browser/BrowserDriver.kt",
+      "lines": 6,
+      "sha256": "4c8ff40eb667cad31e34961ddb4853f93ab8e338d61c885d692a59bab9b9fbb9"
+    },
+    {
+      "file": "browserStorage/src/jsMain/kotlin/com/example/dictionary/browser/BrowserDriver.kt",
+      "lines": 8,
+      "sha256": "2856fd696bd31d86c48261ced6219adc3aeab7e82c5e01b7ac306fd0ad27a90f"
+    },
+    {
+      "file": "browserStorage/src/wasmJsMain/kotlin/com/example/dictionary/browser/BrowserDriver.kt",
+      "lines": 10,
+      "sha256": "977238ae50bb4311025c814cc9dd2e5e52f1d50c15fa2868c2b7585a8157b0aa"
+    },
+    {
+      "file": "browserStorage/worker/package.json",
+      "lines": 7,
+      "sha256": "ec436e4e809fdd517c635d5437675edab0cd00fd5054514e8792c5faf526ba2e"
+    },
+    {
+      "file": "browserStorage/worker/worker.js",
+      "lines": 157,
+      "sha256": "91bbb1ec48b5f0ef86df4b72e1b09f1788a50b4732b313f117565c233fda7b7f"
+    },
+    {
+      "file": "build.gradle.kts",
+      "lines": 10,
+      "sha256": "91dec6b799e175f4ffefb84601b248d198a639241546e0f91d41277c3ee06c29"
+    },
+    {
+      "file": "desktopApp/build.gradle.kts",
+      "lines": 32,
+      "sha256": "88516ddfbe38cbaef76b8f05458f0cfb56cd5053166da32ed9d0e7bc22733cb2"
+    },
+    {
+      "file": "desktopApp/src/main/kotlin/com/example/dictionary/main.kt",
+      "lines": 16,
+      "sha256": "df7175444f6e29e46d9eb5ec8d948b01d2c8c030f84a0bbd02c924d80dc79014"
+    },
+    {
+      "file": "desktopApp/src/test/kotlin/com/example/dictionary/NavigationCompatibilityTest.kt",
+      "lines": 63,
+      "sha256": "e8ba029acb4b82d42eddaeca4b3bed73e0d8f18b597b284df36bbcd5ba400926"
+    },
+    {
+      "file": "gradle.properties",
+      "lines": 10,
+      "sha256": "6104afda9b466b05e384cbd44d89377f8a722ab18fd2410d3dbb37c53daa3f2b"
+    },
+    {
+      "file": "gradle/libs.versions.toml",
+      "lines": 61,
+      "sha256": "59ea231f8403914cb93fd82658422133634da32d3f3d9f39939907c18031728e"
+    },
+    {
+      "file": "iosApp/Configuration/Config.xcconfig",
+      "lines": 7,
+      "sha256": "1fd90d1fbab94e0fc49b1cd86e00096e2256b8510e70351b4f0d1fa8b470fd2f"
+    },
+    {
+      "file": "iosApp/iosApp/ContentView.swift",
+      "lines": 18,
+      "sha256": "e65546434dddd9caf1ce2ed54d4add425855c8cd8471240e4113b862d9683686"
+    },
+    {
+      "file": "iosApp/iosApp/Info.plist",
+      "lines": 8,
+      "sha256": "81edba13228c333748be455b64d393c09bdb6b36b249030bcc7b23e19c9c1628"
+    },
+    {
+      "file": "iosApp/iosApp/iOSApp.swift",
+      "lines": 10,
+      "sha256": "f0a62db951200b0246d6ddfdb12aa28c690b07b10ace44293aad93e0ee66d4c8"
+    },
+    {
+      "file": "settings.gradle.kts",
+      "lines": 38,
+      "sha256": "9c5c60d14fd6a2ae9f5f328ddb5fdf2341e16ecd77cea4b826f701be18e25514"
+    },
+    {
+      "file": "shared/build.gradle.kts",
+      "lines": 125,
+      "sha256": "c65633cfa1d3ad4bca5d3761a408675aa3d92c2edb0142187e75dfda80b6b163"
+    },
+    {
+      "file": "shared/src/androidMain/kotlin/com/example/dictionary/data/AppStorage.kt",
+      "lines": 29,
+      "sha256": "d3d1a3c66ed14a2e3d2d81476a84942e2cada9c834e2d8ca29ced968d94e2398"
+    },
+    {
+      "file": "shared/src/androidMain/kotlin/com/example/dictionary/data/HttpClientFactory.android.kt",
+      "lines": 8,
+      "sha256": "66fc0712c7f2966abe2938b3d09cd3a4d85e5bc3e841c93fe1c2c777c32074b4"
+    },
+    {
+      "file": "shared/src/iosMain/kotlin/com/example/dictionary/MainViewController.kt",
+      "lines": 8,
+      "sha256": "47519b202d18524ed117e5a18698ba8f88cd8d4b92880dde673c8a4ce6363b52"
+    },
+    {
+      "file": "shared/src/iosMain/kotlin/com/example/dictionary/data/AppStorage.kt",
+      "lines": 32,
+      "sha256": "bae89f905767e255452b8ebf49f19c088a01cf546bf41ab0ffd6437a108bfca4"
+    },
+    {
+      "file": "shared/src/iosMain/kotlin/com/example/dictionary/data/HttpClientFactory.ios.kt",
+      "lines": 8,
+      "sha256": "420be8d70c13d483974e02b8292b9b7f9ccc59a28540a26b694bf6471666920c"
+    },
+    {
+      "file": "shared/src/jsMain/kotlin/com/example/dictionary/data/AppStorage.kt",
+      "lines": 20,
+      "sha256": "35f84dd642d5fff672defd1929ee71910d139327713eba354f21d86b700da41d"
+    },
+    {
+      "file": "shared/src/jsMain/kotlin/com/example/dictionary/data/HttpClientFactory.js.kt",
+      "lines": 8,
+      "sha256": "fa123d4d156913396304e44e1ed69e7a9b91fa2b15cc930ad18be53d0145b756"
+    },
+    {
+      "file": "shared/src/jvmMain/kotlin/com/example/dictionary/data/AppStorage.kt",
+      "lines": 23,
+      "sha256": "0c5fdb4c2cedff718dff43bba04c486530648d5806e67ec5a260865b78fc0102"
+    },
+    {
+      "file": "shared/src/jvmMain/kotlin/com/example/dictionary/data/HttpClientFactory.jvm.kt",
+      "lines": 8,
+      "sha256": "33a59ad7a2e0e246d135371a6e580835697e78bd5db193a50d57ffa667fb9c7b"
+    },
+    {
+      "file": "shared/src/jvmTest/kotlin/com/example/dictionary/PersistenceTest.kt",
+      "lines": 168,
+      "sha256": "530e704bff1d4e02806da57eb5016aea2ec15de2f5e42a21c582a9ecd3286a58"
+    },
+    {
+      "file": "shared/src/wasmJsMain/kotlin/com/example/dictionary/data/AppStorage.kt",
+      "lines": 20,
+      "sha256": "35f84dd642d5fff672defd1929ee71910d139327713eba354f21d86b700da41d"
+    },
+    {
+      "file": "shared/src/wasmJsMain/kotlin/com/example/dictionary/data/HttpClientFactory.wasmJs.kt",
+      "lines": 8,
+      "sha256": "fa123d4d156913396304e44e1ed69e7a9b91fa2b15cc930ad18be53d0145b756"
+    },
+    {
+      "file": "webApp/build.gradle.kts",
+      "lines": 30,
+      "sha256": "ced049bc5951468d1db61df154d96602e804c57ea15c2e232956fc87a7109187"
+    },
+    {
+      "file": "webApp/src/webMain/kotlin/com/example/dictionary/main.kt",
+      "lines": 13,
+      "sha256": "8a8c0dce02be3db35e383f97e79de709088875ae45bec6aee413041a1f79cffb"
+    },
+    {
+      "file": "webApp/src/webMain/resources/index.html",
+      "lines": 20,
+      "sha256": "c604f0c154c05407f7c26bde959956a92488df795af4b1846fb551069c9f36d2"
+    },
+    {
+      "file": "webApp/src/webMain/resources/styles.css",
+      "lines": 7,
+      "sha256": "adeed4cf2e4f76faf945f1f0adf8a05fce135eb43b383a06ee336aa936ff9e5c"
+    },
+    {
+      "file": "webApp/webpack.config.d/storage.js",
+      "lines": 7,
+      "sha256": "2c4c82de768da6de27be59ea74987c22f91bfca8bf5758fc49276235fa9c69b1"
+    }
+  ]
+}

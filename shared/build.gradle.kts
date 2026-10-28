@@ -77,9 +77,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
             // Modules 6 and 9: shared networking and JSON dependencies.
-            implementation("io.ktor:ktor-client-logging:3.0.0")
             implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.datastore)
             implementation("io.ktor:ktor-client-core:3.0.0")
             implementation("io.ktor:ktor-client-content-negotiation:3.0.0")
             implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0")

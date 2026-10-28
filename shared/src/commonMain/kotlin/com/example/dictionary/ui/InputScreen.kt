@@ -16,9 +16,7 @@ import androidx.compose.ui.unit.sp
 fun InputScreen(
     query: String,
     onQueryChange: (String) -> Unit,
-    onSearchClick: (String) -> Unit,
-    showSlang: Boolean,
-    onShowSlangChange: (Boolean) -> Unit
+    onSearchClick: (String) -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF9F9FB)) {
         Column(
@@ -36,7 +34,7 @@ fun InputScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Look up definitions & slang.",
+                text = "Look up definitions.",
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 32.sp
@@ -60,12 +58,6 @@ fun InputScreen(
                     unfocusedContainerColor = Color.White
                 )
             )
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = showSlang, onCheckedChange = onShowSlangChange)
-                Text("Show slang by default (may contain explicit language)",
-                    style = MaterialTheme.typography.bodySmall)
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

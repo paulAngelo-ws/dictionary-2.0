@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,11 +21,9 @@ import com.example.dictionary.presentation.UiState
 fun ResultScreen(
     word: String,
     state: UiState,
-    showSlangByDefault: Boolean,
     onRefresh: () -> Unit,
     onSearchSuggestion: (String) -> Unit
 ) {
-    var showUrbanSlang by remember(word, showSlangByDefault) { mutableStateOf(showSlangByDefault) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF9F9FB)) {
         Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
@@ -77,7 +75,6 @@ fun ResultScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
 
-                            // Render "Did you mean...?" banner if Merriam-Webster offered a correction
                             if (!state.didYouMeanSuggestion.isNullOrBlank()) {
                                 item {
                                     Surface(
@@ -121,65 +118,11 @@ fun ResultScreen(
                                     )
                                 }
                                 items(state.formalEntries) { entry ->
-                                    SharpEntryCard(entry, isSlang = false)
+                                    DefinitionCard(entry)
                                 }
                             }
 
-                            if (state.urbanEntries.isNotEmpty()) {
-                                item {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Surface(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { showUrbanSlang = !showUrbanSlang },
-                                        color = Color(0xFFFFF3CD),
-                                        border = BorderStroke(1.dp, Color(0xFFFFEEBA)),
-                                        shape = Shapes().extraSmall
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(16.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text("⚠️", fontSize = 16.sp)
-                                            Spacer(modifier = Modifier.width(12.dp))
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(
-                                                    "URBAN SLANG MATRIX",
-                                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                                    color = Color(0xFF856404)
-                                                )
-                                                Text(
-                                                    if (showUrbanSlang) "Click to collapse unstructured dataset" else "Contains unfiltered explicit terms. Click to expand.",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = Color(0xFF856404)
-                                                )
-                                            }
-                                            Text(if (showUrbanSlang) "[HIDE]" else "[SHOW]", fontWeight = FontWeight.Bold, color = Color(0xFF856404))
-                                        }
-                                    }
-                                }
 
-                                item {
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        if (showUrbanSlang) {
-                                            Spacer(modifier = Modifier.height(12.dp))
-                                            Text(
-                                                "// SLANG ENTRIES",
-                                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                                color = Color.DarkGray
-                                            )
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                                state.urbanEntries.forEach { entry ->
-                                                    SharpEntryCard(entry, isSlang = true)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                     is UiState.Idle -> Text(
@@ -194,7 +137,7 @@ fun ResultScreen(
 }
 
 @Composable
-fun SharpEntryCard(entry: DictionaryEntry, isSlang: Boolean) {
+fun DefinitionCard(entry: DictionaryEntry) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color.White,
@@ -210,7 +153,7 @@ fun SharpEntryCard(entry: DictionaryEntry, isSlang: Boolean) {
                 Text(
                     text = "[ ${entry.source.uppercase()} ]",
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = if (isSlang) Color(0xFFD32F2F) else Color.Black
+                    color = Color.Black
                 )
                 if (entry.partOfSpeech.isNotEmpty()) {
                     Text(
